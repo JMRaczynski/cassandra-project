@@ -1,0 +1,55 @@
+USE app;
+
+INSERT INTO Users (nick, password, firstName, lastName, birthDate, bio) VALUES ('mratajczak', 'password', 'Mateusz', 'Ratajczak', '01-02-1997', 'Hello, my name is Mateusz');
+INSERT INTO Users (nick, password, firstName, lastName, birthDate, bio) VALUES ('jgorny', 'password', 'Jan', 'Górny', '05-02-1997', 'Hello, I am lazy boi');
+INSERT INTO Users (nick, password, firstName, lastName, birthDate, bio) VALUES ('pwtest', 'admin', 'Jan', 'Kowalski', '11-03-1908', 'I AM HERE JUST TO TEST PASSWORD VALIDATION');
+INSERT INTO Users (nick, password, firstName, lastName, birthDate, bio) VALUES ('er713', 'password', 'Eryk', 'Szpotański', '06-06-1998', 'Calculus master');
+INSERT INTO Users (nick, password, firstName, lastName, birthDate, bio) VALUES ('Elak', 'password', 'Pelle', 'Tsivqdnus', '31-07-1990', 'not from Poland');
+INSERT INTO Users (nick, password, firstName, lastName, birthDate, bio) VALUES ('Nobody', 'password', 'Vincent', 'Clermont', '01-02-2000', 'German boi with french name');
+INSERT INTO Users (nick, password, firstName, lastName, birthDate, bio) VALUES ('DieHard', 'password', 'Damian', 'Tabaczyński', '10-12-1998', 'I like to eat');
+INSERT INTO Users (nick, password, firstName, lastName, birthDate, bio) VALUES ('SadPeach', 'password', 'Julia', 'Tadej', '29-04-1998', ':)');
+INSERT INTO Users (nick, password, firstName, lastName, birthDate, bio) VALUES ('lt04', 'password', 'Jakub', 'Baraniak', '21-09-1998', 'I like football');
+INSERT INTO Users (nick, password, firstName, lastName, birthDate, bio) VALUES ('pjt_da_king', 'password', 'Piotr Jan', 'Tamborski', '08-02-1998', 'I like linux');
+
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('mratajczak', 'jgorny', 'Jan', 'Górny', '05-02-1997', 'Hello, I am lazy boi');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('mratajczak', 'SadPeach', 'Julia', 'Tadej', '29-04-1998', ':)');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('mratajczak', 'DieHard', 'Damian', 'Tabaczyński', '10-12-1998', 'I like to eat');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('jgorny', 'mratajczak', 'Mateusz', 'Ratajczak', '01-02-1997', 'Hello, my name is Mateusz');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('jgorny', 'DieHard', 'Damian', 'Tabaczyński', '10-12-1998', 'I like to eat');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('er713', 'SadPeach', 'Julia', 'Tadej', '29-04-1998', ':)');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('Elak', 'Nobody', 'Vincent', 'Clermont', '01-02-2000', 'German boi with french name');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('Nobody', 'Elak', 'Pelle', 'Tsivqdnus', '31-07-1990', 'not from Poland');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('DieHard', 'mratajczak', 'Mateusz', 'Ratajczak', '01-02-1997', 'Hello, my name is Mateusz');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('DieHard', 'jgorny', 'Jan', 'Górny', '05-02-1997', 'Hello, I am lazy boi');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('DieHard', 'SadPeach', 'Julia', 'Tadej', '29-04-1998', ':)');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('DieHard', 'lt04', 'Jakub', 'Baraniak', '21-09-1998', 'I like football');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('SadPeach', 'DieHard', 'Damian', 'Tabaczyński', '10-12-1998', 'I like to eat');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('lt04', 'DieHard', 'Damian', 'Tabaczyński', '10-12-1998', 'I like to eat');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('lt04', 'SadPeach', 'Julia', 'Tadej', '29-04-1998', ':)');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('pjt_da_king', 'DieHard', 'Damian', 'Tabaczyński', '10-12-1998', 'I like to eat');
+INSERT INTO Followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES ('pjt_da_king', 'SadPeach', 'Julia', 'Tadej', '29-04-1998', ':)');
+
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('mratajczak', 'jgorny', 'Jan', 'Górny', '05-02-1997', 'Hello, I am lazy boi');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('mratajczak', 'DieHard', 'Damian', 'Tabaczyński', '10-12-1998', 'I like to eat');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('jgorny', 'mratajczak', 'Mateusz', 'Ratajczak', '01-02-1997', 'Hello, my name is Mateusz');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('jgorny', 'DieHard', 'Damian', 'Tabaczyński', '10-12-1998', 'I like to eat');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('Elak', 'Nobody', 'Vincent', 'Clermont', '01-02-2000', 'German boi with french name');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('Nobody', 'Elak', 'Pelle', 'Tsivqdnus', '31-07-1990', 'not from Poland');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('DieHard', 'mratajczak', 'Mateusz', 'Ratajczak', '01-02-1997', 'Hello, my name is Mateusz');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('DieHard', 'jgorny', 'Jan', 'Górny', '05-02-1997', 'Hello, I am lazy boi');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('DieHard', 'SadPeach', 'Julia', 'Tadej', '29-04-1998', ':)');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('DieHard', 'lt04', 'Jakub', 'Baraniak', '21-09-1998', 'I like football');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('DieHard', 'pjt_da_king', 'Piotr Jan', 'Tamborski', '08-02-1998', 'I like linux');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('SadPeach', 'mratajczak', 'Mateusz', 'Ratajczak', '01-02-1997', 'Hello, my name is Mateusz');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('SadPeach', 'er713', 'Eryk', 'Szpotański', '06-06-1998', 'Calculus master');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('SadPeach', 'DieHard', 'Damian', 'Tabaczyński', '10-12-1998', 'I like to eat');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('SadPeach', 'lt04', 'Jakub', 'Baraniak', '21-09-1998', 'I like football');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('SadPeach', 'pjt_da_king', 'Piotr Jan', 'Tamborski', '08-02-1998', 'I like linux');
+INSERT INTO Following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES ('lt04', 'DieHard', 'Damian', 'Tabaczyński', '10-12-1998', 'I like to eat');
+
+INSERT INTO Posts (authorNick, creationDate, text) VALUES ('lt04', 1624452366000, 'I''ve just lost my house on Poland-Sweden match :(');
+INSERT INTO Posts (authorNick, creationDate, text) VALUES ('lt04', 1624452266000, 'I''ve just won 10zl on Poland-Spain match :D');
+INSERT INTO Posts (authorNick, creationDate, text) VALUES ('Elak', 1624452166000, 'http://twitch.tv/elak99 <- LIVE!');
+INSERT INTO Posts (authorNick, creationDate, text) VALUES ('pjt_da_king', 1624452266000, 'Just started work on new PJT linux distro!');
+INSERT INTO Posts (authorNick, creationDate, text) VALUES ('mratajczak', 1624452346000, 'I have worked last 96 hours nonstop and I feel great!');
+INSERT INTO Posts (authorNick, creationDate, text) VALUES ('jgorny', 1624452356000, 'Have anyone seen PO 99999 plate? Pls phone on 444 444 444');
