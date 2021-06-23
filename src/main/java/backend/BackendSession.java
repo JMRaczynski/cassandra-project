@@ -1,5 +1,6 @@
 package backend;
 
+import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,8 +10,6 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-
-import java.util.Date;
 
 /*
  * For error handling done right see:
@@ -40,12 +39,13 @@ public class BackendSession {
         prepareStatements();
     }
 
+    private static PreparedStatement SELECT_USER;
+    private static PreparedStatement ADD_USER;
     private static PreparedStatement SELECT_ALL_FROM_USERS;
     private static PreparedStatement SELECT_ALL_FROM_FOLLOWERS;
     private static PreparedStatement SELECT_ALL_FROM_FOLLOWING;
     private static PreparedStatement SELECT_ALL_FROM_POSTS;
 
-//    private static PreparedStatement INSERT_INTO_USERS;
 //    private static PreparedStatement DELETE_ALL_FROM_USERS;
 //    private static PreparedStatement UPDATE_INVARIANT;
 //    private static PreparedStatement SELECT_INVARIANT;
@@ -58,10 +58,13 @@ public class BackendSession {
 
     private void prepareStatements() throws BackendException {
         try {
+            SELECT_USER = session.prepare("SELECT * FROM users WHERE nick = '?'");
             SELECT_ALL_FROM_USERS = session.prepare("SELECT * FROM users;");
             SELECT_ALL_FROM_FOLLOWERS = session.prepare("SELECT * FROM followers;");
             SELECT_ALL_FROM_FOLLOWING = session.prepare("SELECT * FROM following;");
             SELECT_ALL_FROM_POSTS = session.prepare("SELECT * FROM posts;");
+
+            ADD_USER = session.prepare("INSERT INTO users (nick, password, firstName, lastName, birthDate, bio) VALUES ('?', '?', '?', '?', '?', '?')");
 //            INSERT_INTO_USERS = session
 //                    .prepare("INSERT INTO users (companyName, name, phone, street) VALUES (?, ?, ?, ?);");
 //            DELETE_ALL_FROM_USERS = session.prepare("TRUNCATE users;");
@@ -73,6 +76,24 @@ public class BackendSession {
         }
 
         logger.info("Statements prepared");
+    }
+
+    public User selectUser(String nickname) throws BackendException {
+        BoundStatement bs = new BoundStatement(SELECT_USER);
+        bs.bind(nickname);
+
+        ResultSet rs = null;
+
+        try {
+            rs = session.execute(bs);
+        } catch (Exception e) {
+            throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
+        }
+
+        Row record = rs.one();
+        if (record == null) return null;
+        return new User(nickname, record.getString("password"), record.getString("firstName"),
+                record.getString("lastName"), record.getString("birthDate"), record.getString("bio"));
     }
 
     public String selectAllUsers() throws BackendException {
@@ -176,18 +197,21 @@ public class BackendSession {
         return builder.toString();
     }
 
-//    public void upsertUser(String companyName, String name, int phone, String street) throws BackendException {
-//        BoundStatement bs = new BoundStatement(INSERT_INTO_USERS);
-//        bs.bind(companyName, name, phone, street);
-//
-//        try {
-//            session.execute(bs);
-//        } catch (Exception e) {
-//            throw new BackendException("Could not perform an upsert. " + e.getMessage() + ".", e);
-//        }
-//
-//        logger.info("User " + name + " upserted");
-//    }
+    public void addUser(String nick, String password, String firstName,
+                        String lastName, String birthDate, String bio) throws BackendException {
+        BoundStatement bs = new BoundStatement(ADD_USER);
+        bs.bind(nick, password, firstName, lastName, birthDate, bio);
+
+        try {
+            session.execute(bs);
+        } catch (Exception e) {
+            throw new BackendException("Could not perform an upsert. " + e.getMessage() + ".", e);
+        }
+
+        //logger.info("model.User " + name + " upserted");
+    }
+
+
 //
 //    public void deleteAll() throws BackendException {
 //        BoundStatement bs = new BoundStatement(DELETE_ALL_FROM_USERS);
