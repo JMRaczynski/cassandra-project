@@ -1,6 +1,7 @@
 import backend.BackendException;
 import backend.BackendSession;
 import cli.Menu;
+import utils.FeedProvider;
 import utils.LoginValidator;
 import utils.PostCreator;
 import utils.UserDataValidator;
@@ -37,6 +38,7 @@ public class Main {
         LoginValidator loginValidator = new LoginValidator(session);
         UserDataValidator userDataValidator = new UserDataValidator(session);
         PostCreator postCreator = new PostCreator(session);
+        FeedProvider feedProvider = new FeedProvider(session);
 
 //		for (int i = 0; i < 30; i++) {
 //			new Thread(() -> {
@@ -92,9 +94,8 @@ public class Main {
         }
         boolean exit = false;
         while (!exit) {
-//            ArrayList<String> fNicks = session.selectFollowingUsersNicknames(nickname);
-//            System.out.println(fNicks);
-//            System.out.println(session.selectPosts(fNicks));
+
+            System.out.println(feedProvider.getRecentPosts(nickname));
             System.out.println(menu.getMainMenu());
             String action = menu.readAnwser();
             if (Arrays.asList(Menu.valid_actions).contains(action)) {

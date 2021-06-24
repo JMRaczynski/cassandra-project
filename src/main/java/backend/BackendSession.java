@@ -1,20 +1,12 @@
 package backend;
 
-import jnr.ffi.Struct;
+import com.datastax.driver.core.*;
 import model.Post;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 
 /*
@@ -46,13 +38,14 @@ public class BackendSession {
     }
 
     private static PreparedStatement SELECT_USER;
-    private static PreparedStatement SELECT_ALL_FROM_USERS;
-    private static PreparedStatement SELECT_ALL_FROM_FOLLOWERS;
     private static PreparedStatement SELECT_FOLLOWING_USERS;
     private static PreparedStatement SELECT_POSTS;
 
     private static PreparedStatement ADD_USER;
     private static PreparedStatement ADD_POST;
+
+    private static PreparedStatement UPDATE_FOLLOWERS;
+    private static PreparedStatement UPDATE_FOLLOWING;
 
 //    private static PreparedStatement DELETE_ALL_FROM_USERS;
 //    private static PreparedStatement UPDATE_INVARIANT;
@@ -60,20 +53,17 @@ public class BackendSession {
 //    private static PreparedStatement INCREMENT_URL;
 
     private static final String USER_FORMAT = "- %-15s  %-15s %-15s %-15s %-15s %-15s\n";
-    private static final String POST_FORMAT = "- %-15s  %-15s %-15s\n";
-    // private static final SimpleDateFormat df = new
-    // SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private void prepareStatements() throws BackendException {
         try {
             SELECT_USER = session.prepare("SELECT * FROM users WHERE nick = ?");
-            SELECT_ALL_FROM_USERS = session.prepare("SELECT * FROM users;");
-            SELECT_ALL_FROM_FOLLOWERS = session.prepare("SELECT * FROM followers;");
             SELECT_FOLLOWING_USERS = session.prepare("SELECT * FROM following WHERE nick = ?;");
-            SELECT_POSTS = session.prepare("SELECT * FROM posts WHERE authornick IN :nicklist;");
+            SELECT_POSTS = session.prepare("SELECT * FROM posts WHERE authornick=? LIMIT 100;");
 
-            ADD_USER = session.prepare("INSERT INTO users (nick, password, firstName, lastName, birthDate, bio) VALUES (?, ?, ?, ?, ?, ?)");
-            ADD_POST = session.prepare("INSERT INTO posts (authornick, creationdate, text) VALUES (?, ?, ?)");
+            ADD_USER = session.prepare("INSERT INTO users (nick, password, firstName, lastName, birthDate, bio) VALUES (?, ?, ?, ?, ?, ?);");
+            ADD_POST = session.prepare("INSERT INTO posts (authornick, creationdate, text) VALUES (?, ?, ?);");
+//            UPDATE_FOLLOWERS = session.prepare("UPDATE followers SET followerFirstName=?, followerLastName=?, followerBirthDate=?, followerBio=? WHERE followerNick=? ALLOW FILTERING;");
+//            UPDATE_FOLLOWING = session.prepare("UPDATE following SET followingFirstName=?, followingLastName=?, followingBirthDate=?, followingBio=? WHERE followingNick=? ALLOW FILTERING;");
 //            INSERT_INTO_USERS = session
 //                    .prepare("INSERT INTO users (companyName, name, phone, street) VALUES (?, ?, ?, ?);");
 //            DELETE_ALL_FROM_USERS = session.prepare("TRUNCATE users;");
@@ -105,58 +95,6 @@ public class BackendSession {
                 record.getString("lastName"), record.getString("birthDate"), record.getString("bio"));
     }
 
-    public String selectAllUsers() throws BackendException {
-        StringBuilder builder = new StringBuilder();
-        BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_USERS);
-
-        ResultSet rs = null;
-
-        try {
-            rs = session.execute(bs);
-        } catch (Exception e) {
-            throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
-        }
-
-        for (Row row : rs) {
-            String nick = row.getString("nick");
-            String password = row.getString("password");
-            String firstName = row.getString("firstName");
-            String lastName = row.getString("lastName");
-            String birthDate = row.getString("birthDate");
-            String bio = row.getString("bio");
-
-            builder.append(String.format(USER_FORMAT, nick, password, firstName, lastName, birthDate, bio));
-        }
-
-        return builder.toString();
-    }
-
-    public String selectAllFollowers() throws BackendException {
-        StringBuilder builder = new StringBuilder();
-        BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_FOLLOWERS);
-
-        ResultSet rs = null;
-
-        try {
-            rs = session.execute(bs);
-        } catch (Exception e) {
-            throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
-        }
-
-        for (Row row : rs) {
-            String nick = row.getString("nick");
-            String fNick = row.getString("followerNick");
-            String fFirstName = row.getString("followerFirstName");
-            String fLastName = row.getString("followerLastName");
-            String fBirthDate = row.getString("followerBirthDate");
-            String fBio = row.getString("followerBio");
-
-            builder.append(String.format(USER_FORMAT, nick, fNick, fFirstName, fLastName, fBirthDate, fBio));
-        }
-
-        return builder.toString();
-    }
-
     public ArrayList<String> selectFollowingUsersNicknames(String nick) throws BackendException {
 
         BoundStatement bs = new BoundStatement(SELECT_FOLLOWING_USERS);
@@ -179,10 +117,10 @@ public class BackendSession {
         return followingList;
     }
 
-    public ArrayList<Post> selectPosts(ArrayList<String> followingNicks) throws BackendException {
+    public ArrayList<Post> selectPosts(String followingNick) throws BackendException {
         BoundStatement bs = new BoundStatement(SELECT_POSTS);
-        bs.bind();
-        bs.setList("nicklist", followingNicks);
+        bs.bind(followingNick);
+//        bs.setList("nicklist", followingNicks);
 
         ResultSet rs = null;
 
@@ -191,7 +129,7 @@ public class BackendSession {
         try {
             rs = session.execute(bs);
         } catch (Exception e) {
-            throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
+            throw new BackendException("Could not fetch recent posts. " + e.getMessage() + ".", e);
         }
 
         for (Row row : rs) {
@@ -230,65 +168,29 @@ public class BackendSession {
         }
     }
 
+    public void updateFollowers(User updatedUser) throws BackendException {
+        BoundStatement bs = new BoundStatement(UPDATE_FOLLOWERS);
+        bs.bind(updatedUser.getFirstName(), updatedUser.getLastName(), updatedUser.getBirthDate(),
+                updatedUser.getBio(), updatedUser.getNickname());
 
-//
-//    public void deleteAll() throws BackendException {
-//        BoundStatement bs = new BoundStatement(DELETE_ALL_FROM_USERS);
-//
-//        try {
-//            session.execute(bs);
-//        } catch (Exception e) {
-//            throw new BackendException("Could not perform a delete operation. " + e.getMessage() + ".", e);
-//        }
-//
-//        logger.info("All users deleted");
-//    }
-//
-//    public void updateInvariant(long threadNum) throws BackendException {
-//        BoundStatement bs = new BoundStatement(UPDATE_INVARIANT);
-//        bs.bind((int)threadNum, (int)-threadNum);
-//
-//        try {
-//            session.execute(bs);
-//        } catch (Exception e) {
-//            throw new BackendException("Could not perform an upsert. " + e.getMessage() + ".", e);
-//        }
-//
-//        logger.info("row upserted successfully");
-//    }
-//
-//    public String selectInvariant() throws BackendException {
-//        BoundStatement bs = new BoundStatement(SELECT_INVARIANT);
-//
-//        ResultSet rs = null;
-//
-//        try {
-//            rs = session.execute(bs);
-//        } catch (Exception e) {
-//            throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
-//        }
-//
-//        String output = "";
-//
-//        for (Row row : rs) {
-//            int positiveThreadNum = row.getInt("col1");
-//            int negativeThreadNum = row.getInt("col2");
-//            output = "Positive: " + positiveThreadNum + "\nNegative: " + negativeThreadNum;
-//        }
-//
-//        return output;
-//    }
-//
-//    public void incrementCounter() throws BackendException {
-//        BoundStatement bs = new BoundStatement(INCREMENT_URL);
-//
-//        try {
-//            session.execute(bs);
-//        } catch (Exception e) {
-//            throw new BackendException("Could not perform an upsert. " + e.getMessage() + ".", e);
-//        }
-//
-//    }
+        try {
+            session.execute(bs);
+        } catch (Exception e) {
+            throw new BackendException("Could not edit profile due to database problems. Details:" + e.getMessage() + ".", e);
+        }
+    }
+
+    public void updateFollowing(User updatedUser) throws BackendException {
+        BoundStatement bs = new BoundStatement(UPDATE_FOLLOWING);
+        bs.bind(updatedUser.getFirstName(), updatedUser.getLastName(), updatedUser.getBirthDate(),
+                updatedUser.getBio(), updatedUser.getNickname());
+
+        try {
+            session.execute(bs);
+        } catch (Exception e) {
+            throw new BackendException("Could not edit profile due to database problems. Details:" + e.getMessage() + ".", e);
+        }
+    }
 
     protected void finalize() {
         try {
