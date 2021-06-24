@@ -2,9 +2,11 @@ import backend.BackendException;
 import backend.BackendSession;
 import cli.Menu;
 import utils.LoginValidator;
-import utils.RegistryValidator;
+import utils.PostCreator;
+import utils.UserDataValidator;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -33,7 +35,8 @@ public class Main {
         String answer;
 
         LoginValidator loginValidator = new LoginValidator(session);
-        RegistryValidator registryValidator = new RegistryValidator(session);
+        UserDataValidator userDataValidator = new UserDataValidator(session);
+        PostCreator postCreator = new PostCreator(session);
 
 //		for (int i = 0; i < 30; i++) {
 //			new Thread(() -> {
@@ -82,13 +85,16 @@ public class Main {
             while (!valid_registration_info) {
                 String[] registration_info = menu.readUserForm();
                 nickname = registration_info[0];
-                valid_registration_info = registryValidator.validateRegistry(registration_info[0],
+                valid_registration_info = userDataValidator.validate(registration_info[0],
                         registration_info[1], registration_info[2], registration_info[3], registration_info[4],
-                        registration_info[5], registration_info[6]);
+                        registration_info[5], registration_info[6], true);
             }
         }
         boolean exit = false;
         while (!exit) {
+//            ArrayList<String> fNicks = session.selectFollowingUsersNicknames(nickname);
+//            System.out.println(fNicks);
+//            System.out.println(session.selectPosts(fNicks));
             System.out.println(menu.getMainMenu());
             String action = menu.readAnwser();
             if (Arrays.asList(Menu.valid_actions).contains(action)) {
@@ -99,7 +105,10 @@ public class Main {
                 if (action.equals(Menu.WRITE)) {
                     //TODO: ograniczyć liczbę przyjmowanych znaków
                     String post = menu.processNewPost();
-                    //TODO: zapisanie posta do bazy
+                    if (post != null) {
+                        postCreator.createPost(nickname, post);
+                    }
+                    // TODO: poprawne komunikaty
                     System.out.println("Zapisywanie posta do bazy ale tylko jeśli String post nie jest pusty");
                 }
 

@@ -113,7 +113,7 @@ public class Menu {
         if (answer.equals(YES)) {
             return post;
         } else {
-            return "";
+            return null;
         }
     }
 }

@@ -1,5 +1,7 @@
 package backend;
 
+import jnr.ffi.Struct;
+import model.Post;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +12,10 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 
 /*
  * For error handling done right see:
@@ -40,11 +46,13 @@ public class BackendSession {
     }
 
     private static PreparedStatement SELECT_USER;
-    private static PreparedStatement ADD_USER;
     private static PreparedStatement SELECT_ALL_FROM_USERS;
     private static PreparedStatement SELECT_ALL_FROM_FOLLOWERS;
-    private static PreparedStatement SELECT_ALL_FROM_FOLLOWING;
-    private static PreparedStatement SELECT_ALL_FROM_POSTS;
+    private static PreparedStatement SELECT_FOLLOWING_USERS;
+    private static PreparedStatement SELECT_POSTS;
+
+    private static PreparedStatement ADD_USER;
+    private static PreparedStatement ADD_POST;
 
 //    private static PreparedStatement DELETE_ALL_FROM_USERS;
 //    private static PreparedStatement UPDATE_INVARIANT;
@@ -61,10 +69,11 @@ public class BackendSession {
             SELECT_USER = session.prepare("SELECT * FROM users WHERE nick = ?");
             SELECT_ALL_FROM_USERS = session.prepare("SELECT * FROM users;");
             SELECT_ALL_FROM_FOLLOWERS = session.prepare("SELECT * FROM followers;");
-            SELECT_ALL_FROM_FOLLOWING = session.prepare("SELECT * FROM following;");
-            SELECT_ALL_FROM_POSTS = session.prepare("SELECT * FROM posts;");
+            SELECT_FOLLOWING_USERS = session.prepare("SELECT * FROM following WHERE nick = ?;");
+            SELECT_POSTS = session.prepare("SELECT * FROM posts WHERE authornick IN :nicklist;");
 
             ADD_USER = session.prepare("INSERT INTO users (nick, password, firstName, lastName, birthDate, bio) VALUES (?, ?, ?, ?, ?, ?)");
+            ADD_POST = session.prepare("INSERT INTO posts (authornick, creationdate, text) VALUES (?, ?, ?)");
 //            INSERT_INTO_USERS = session
 //                    .prepare("INSERT INTO users (companyName, name, phone, street) VALUES (?, ?, ?, ?);");
 //            DELETE_ALL_FROM_USERS = session.prepare("TRUNCATE users;");
@@ -148,9 +157,12 @@ public class BackendSession {
         return builder.toString();
     }
 
-    public String selectAllFollowing() throws BackendException {
-        StringBuilder builder = new StringBuilder();
-        BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_FOLLOWING);
+    public ArrayList<String> selectFollowingUsersNicknames(String nick) throws BackendException {
+
+        BoundStatement bs = new BoundStatement(SELECT_FOLLOWING_USERS);
+        bs.bind(nick);
+
+        ArrayList<String> followingList = new ArrayList<>();
 
         ResultSet rs = null;
 
@@ -161,24 +173,20 @@ public class BackendSession {
         }
 
         for (Row row : rs) {
-            String nick = row.getString("nick");
-            String fNick = row.getString("followingNick");
-            String fFirstName = row.getString("followingFirstName");
-            String fLastName = row.getString("followingLastName");
-            String fBirthDate = row.getString("followingBirthDate");
-            String fBio = row.getString("followingBio");
-
-            builder.append(String.format(USER_FORMAT, nick, fNick, fFirstName, fLastName, fBirthDate, fBio));
+            followingList.add(row.getString("followingNick"));
         }
 
-        return builder.toString();
+        return followingList;
     }
 
-    public String selectAllPosts() throws BackendException {
-        StringBuilder builder = new StringBuilder();
-        BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_POSTS);
+    public ArrayList<Post> selectPosts(ArrayList<String> followingNicks) throws BackendException {
+        BoundStatement bs = new BoundStatement(SELECT_POSTS);
+        bs.bind();
+        bs.setList("nicklist", followingNicks);
 
         ResultSet rs = null;
+
+        ArrayList<Post> posts = new ArrayList<>();
 
         try {
             rs = session.execute(bs);
@@ -188,13 +196,13 @@ public class BackendSession {
 
         for (Row row : rs) {
             String nick = row.getString("authorNick");
-            long timestamp = row.getTimestamp("creationDate").getTime();
-            String post = row.getString("text");
+            Date date = row.getTimestamp("creationDate");
+            String text = row.getString("text");
 
-            builder.append(String.format(POST_FORMAT, nick, timestamp, post));
+            posts.add(new Post(nick, date, text));
         }
 
-        return builder.toString();
+        return posts;
     }
 
     public void addUser(String nick, String password, String firstName,
@@ -205,10 +213,21 @@ public class BackendSession {
         try {
             session.execute(bs);
         } catch (Exception e) {
-            throw new BackendException("Could not perform an upsert. " + e.getMessage() + ".", e);
+            throw new BackendException("Could not register to the portal due to database problems. Details: " + e.getMessage() + ".", e);
         }
 
         //logger.info("model.User " + name + " upserted");
+    }
+
+    public void addPost(String nick, String content) throws BackendException {
+        BoundStatement bs = new BoundStatement(ADD_POST);
+        bs.bind(nick, new Date(System.currentTimeMillis()), content);
+
+        try {
+            session.execute(bs);
+        } catch (Exception e) {
+            throw new BackendException("Could not add post due to database problems. Details:" + e.getMessage() + ".", e);
+        }
     }
 
 
