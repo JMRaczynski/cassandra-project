@@ -72,8 +72,8 @@ public class Menu {
 
     public String[] getUserForm() {
 
-        String[] entrynames = {props.getProperty("username"), props.getProperty("password"), props.getProperty("first_name"),
-        props.getProperty("last_name"), props.getProperty("birthdate"), props.getProperty("bio")};
+        String[] entrynames = {props.getProperty("username"), props.getProperty("password"), props.getProperty("rewrite_password"),
+                props.getProperty("first_name"), props.getProperty("last_name"), props.getProperty("birthdate"), props.getProperty("bio")};
         for (int i=0; i<entrynames.length; i++) {
             entrynames[i] += ":";
         }

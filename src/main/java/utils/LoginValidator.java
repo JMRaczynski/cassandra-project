@@ -12,6 +12,6 @@ public class LoginValidator extends Validator {
 
     public Boolean validateLogin(String nick, String password) throws BackendException {
         User user = session.selectUser(nick);
-        return validateNick(user, nick) && user.getPassword().equals(password);
+        return checkIfUserExists(user) && user.getPassword().equals(password);
     }
 }

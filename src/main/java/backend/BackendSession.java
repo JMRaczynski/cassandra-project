@@ -58,13 +58,13 @@ public class BackendSession {
 
     private void prepareStatements() throws BackendException {
         try {
-            SELECT_USER = session.prepare("SELECT * FROM users WHERE nick = '?'");
+            SELECT_USER = session.prepare("SELECT * FROM users WHERE nick = ?");
             SELECT_ALL_FROM_USERS = session.prepare("SELECT * FROM users;");
             SELECT_ALL_FROM_FOLLOWERS = session.prepare("SELECT * FROM followers;");
             SELECT_ALL_FROM_FOLLOWING = session.prepare("SELECT * FROM following;");
             SELECT_ALL_FROM_POSTS = session.prepare("SELECT * FROM posts;");
 
-            ADD_USER = session.prepare("INSERT INTO users (nick, password, firstName, lastName, birthDate, bio) VALUES ('?', '?', '?', '?', '?', '?')");
+            ADD_USER = session.prepare("INSERT INTO users (nick, password, firstName, lastName, birthDate, bio) VALUES (?, ?, ?, ?, ?, ?)");
 //            INSERT_INTO_USERS = session
 //                    .prepare("INSERT INTO users (companyName, name, phone, street) VALUES (?, ?, ?, ?);");
 //            DELETE_ALL_FROM_USERS = session.prepare("TRUNCATE users;");
