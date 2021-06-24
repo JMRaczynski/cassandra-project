@@ -5,6 +5,7 @@ import utils.LoginValidator;
 import utils.RegistryValidator;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
 
 public class Main {
@@ -14,6 +15,7 @@ public class Main {
     public static void main(String[] args) throws IOException, BackendException {
         String contactPoint = null;
         String keyspace = null;
+        String nickname = null;
 
         Properties properties = new Properties();
         try {
@@ -66,21 +68,46 @@ public class Main {
             boolean valid_credentials = false;
             while (!valid_credentials) {
                 String[] credentials = menu.readCredentials();
+                nickname = credentials[0];
                 valid_credentials = loginValidator.validateLogin(credentials[0], credentials[1]);
+                if (!valid_credentials) {
+                    System.out.println(menu.getWrongCredentials());
+                }
             }
+
 
         } else { //rejestracja
 
             boolean valid_registration_info = false;
             while (!valid_registration_info) {
                 String[] registration_info = menu.readUserForm();
+                nickname = registration_info[0];
                 valid_registration_info = registryValidator.validateRegistry(registration_info[0],
                         registration_info[1], registration_info[2], registration_info[3], registration_info[4],
                         registration_info[5], registration_info[6]);
             }
         }
-        System.out.println("Successful login/registration");
-        // turbo loop na resztę działania programu xd
+        boolean exit = false;
+        while (!exit) {
+            System.out.println(menu.getMainMenu());
+            String action = menu.readAnwser();
+            if (Arrays.asList(Menu.valid_actions).contains(action)) {
+                if (action.equals(Menu.EXIT)) {
+                    exit = true;
+                }
+
+                if (action.equals(Menu.WRITE)) {
+                    //TODO: ograniczyć liczbę przyjmowanych znaków
+                    String post = menu.processNewPost();
+                    //TODO: zapisanie posta do bazy
+                    System.out.println("Zapisywanie posta do bazy ale tylko jeśli String post nie jest pusty");
+                }
+
+                //TODO: pozostałe akcje
+            } else {
+                System.out.println(menu.getInvalidInput());
+            }
+        }
 
         //		session.deleteAll();
 

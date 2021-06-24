@@ -16,6 +16,10 @@ public class Menu {
     public static final String POSTS="P";
     public static final String WRITE="W";
     public static final String EDIT="E";
+    public static final String EXIT="X";
+    public static final String YES="Y";
+    public static final String NO="N";
+    public static final String[] valid_actions = {S_FOLLOWERS, S_FOLLOWING, SEARCH, POSTS, WRITE, EDIT, EXIT};
 
 
     private static final String PROPERTIES_FILENAME = "interface.properties";
@@ -35,7 +39,11 @@ public class Menu {
     }
 
     public String getInvalidInput() {
-        return props.getProperty("invalid_input") + "\n";
+        return props.getProperty("invalid_input");
+    }
+
+    public String getWrongCredentials() {
+        return props.getProperty("login_failed");
     }
 
     public String getPreLoginMenu() {
@@ -57,6 +65,7 @@ public class Menu {
         builder.append(POSTS).append(": ").append(props.getProperty("show_posts")).append("\n");
         builder.append(SEARCH).append(": ").append(props.getProperty("search_for_users")).append("\n");
         builder.append(EDIT).append(": ").append(props.getProperty("change_profile")).append("\n");
+        builder.append(EXIT).append(": ").append(props.getProperty("exit")).append("\n");
         return builder.toString();
     }
 
@@ -90,5 +99,21 @@ public class Menu {
             answers[i] = readAnwser();
         }
         return answers;
+    }
+
+    public String processNewPost() {
+
+        System.out.println(props.getProperty("writing_information"));
+        String post = readAnwser();
+        String answer = "F";
+        while (!(answer.equals(YES) || answer.equals(NO))) {
+            System.out.println(props.getProperty("publish"));
+            answer = readAnwser();
+        }
+        if (answer.equals(YES)) {
+            return post;
+        } else {
+            return "";
+        }
     }
 }
