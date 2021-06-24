@@ -1,7 +1,8 @@
 package cli;
 
+import model.User;
+
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Scanner;
@@ -19,6 +20,8 @@ public class Menu {
     public static final String EXIT="X";
     public static final String YES="Y";
     public static final String NO="N";
+    public static final String FOLLOW="F";
+    public static final String UNFOLLOW="U";
     public static final String[] valid_actions = {S_FOLLOWERS, S_FOLLOWING, SEARCH, POSTS, WRITE, EDIT, EXIT};
 
 
@@ -34,7 +37,7 @@ public class Menu {
         }
     }
 
-    public String readAnwser() {
+    public String readAnswer() {
         return in.nextLine();
     }
 
@@ -45,6 +48,16 @@ public class Menu {
     public String getWrongCredentials() {
         return props.getProperty("login_failed");
     }
+
+    public String getPostAdded() { return props.getProperty("post_added"); }
+
+    public String getFollowingHeader() { return props.getProperty("following_header") + ":"; }
+
+    public String getFollowersHeader() { return props.getProperty("followers_header") + ":"; }
+
+    public String getPostsHeader() { return props.getProperty("posts_header") + ":"; }
+
+    public String getNoUserFound() { return props.getProperty("no_user_found") + ":"; }
 
     public String getPreLoginMenu() {
 
@@ -65,7 +78,7 @@ public class Menu {
         builder.append(POSTS).append(": ").append(props.getProperty("show_posts")).append("\n");
         builder.append(SEARCH).append(": ").append(props.getProperty("search_for_users")).append("\n");
         builder.append(EDIT).append(": ").append(props.getProperty("change_profile")).append("\n");
-        builder.append(EXIT).append(": ").append(props.getProperty("exit")).append("\n");
+        builder.append(EXIT).append(": ").append(props.getProperty("exit"));
         return builder.toString();
     }
 
@@ -73,9 +86,9 @@ public class Menu {
 
         String[] credentials = new String[2];
         System.out.println(props.getProperty("username") + ":");
-        credentials[0] = readAnwser();
+        credentials[0] = readAnswer();
         System.out.println(props.getProperty("password") + ":");
-        credentials[1] = readAnwser();
+        credentials[1] = readAnswer();
         return credentials;
     }
 
@@ -96,7 +109,7 @@ public class Menu {
         System.out.println(props.getProperty("fill_in_registration") + "\n");
         for (int i=0; i<entrynames.length; i++) {
             System.out.println(entrynames[i]);
-            answers[i] = readAnwser();
+            answers[i] = readAnswer();
         }
         return answers;
     }
@@ -104,16 +117,25 @@ public class Menu {
     public String processNewPost() {
 
         System.out.println(props.getProperty("writing_information"));
-        String post = readAnwser();
+        String post = readAnswer();
         String answer = "F";
         while (!(answer.equals(YES) || answer.equals(NO))) {
             System.out.println(props.getProperty("publish"));
-            answer = readAnwser();
+            answer = readAnswer();
         }
         if (answer.equals(YES)) {
             return post;
         } else {
             return null;
         }
+    }
+
+    public String getSearchedName() {
+        System.out.println(props.getProperty("search_for"));
+        return readAnswer();
+    }
+
+    public String getUserInfoHeader(String nickname) {
+        return props.getProperty("user_info") + " " + nickname;
     }
 }

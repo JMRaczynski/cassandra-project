@@ -1,6 +1,8 @@
 import backend.BackendException;
 import backend.BackendSession;
 import cli.Menu;
+import model.Post;
+import model.User;
 import utils.FeedProvider;
 import utils.LoginValidator;
 import utils.PostCreator;
@@ -61,13 +63,12 @@ public class Main {
 //		String output = session.selectAllPosts();
 //		System.out.println("Table contents: \n" + output);
         System.out.println(menu.getPreLoginMenu());
-        answer = menu.readAnwser();
+        answer = menu.readAnswer();
         while (!(answer.equals(Menu.LOGIN) || answer.equals(Menu.REGISTER))) {
             System.out.println(menu.getInvalidInput());
-            answer = menu.readAnwser();
-            //TODO: Ewentualnie exit tutaj jeśli dodamy taką opcję w menu logowania
+            answer = menu.readAnswer();
         }
-        // logowanie
+
         if (answer.equals(Menu.LOGIN)) {
 
             boolean valid_credentials = false;
@@ -81,7 +82,7 @@ public class Main {
             }
 
 
-        } else { //rejestracja
+        } else {
 
             boolean valid_registration_info = false;
             while (!valid_registration_info) {
@@ -90,14 +91,20 @@ public class Main {
                 valid_registration_info = userDataValidator.validate(registration_info[0],
                         registration_info[1], registration_info[2], registration_info[3], registration_info[4],
                         registration_info[5], registration_info[6], true);
+                if (!valid_registration_info) {
+                    ArrayList<String> messages = userDataValidator.getErrorMessages();
+                    for (String message: messages) {
+                        System.out.println(message);
+                    }
+                }
             }
         }
         boolean exit = false;
         while (!exit) {
 
-            System.out.println(feedProvider.getRecentPosts(nickname));
+//            System.out.println(feedProvider.getRecentPosts(nickname));
             System.out.println(menu.getMainMenu());
-            String action = menu.readAnwser();
+            String action = menu.readAnswer();
             if (Arrays.asList(Menu.valid_actions).contains(action)) {
                 if (action.equals(Menu.EXIT)) {
                     exit = true;
@@ -107,13 +114,56 @@ public class Main {
                     //TODO: ograniczyć liczbę przyjmowanych znaków
                     String post = menu.processNewPost();
                     if (post != null) {
-                        postCreator.createPost(nickname, post);
+                        boolean created = postCreator.createPost(nickname, post);
+                        if (created) {
+                            System.out.println(menu.getPostAdded());
+                        }
                     }
-                    // TODO: poprawne komunikaty
-                    System.out.println("Zapisywanie posta do bazy ale tylko jeśli String post nie jest pusty");
                 }
 
-                //TODO: pozostałe akcje
+                if (action.equals(Menu.S_FOLLOWING)) {
+                    System.out.println(menu.getFollowingHeader());
+                    ArrayList<String> following = session.selectFollowingUsersNicknames(nickname);
+                    for (String name: following) {
+                        System.out.println(name);
+                    }
+                }
+
+                if (action.equals(Menu.S_FOLLOWERS)) {
+                    System.out.println(menu.getFollowersHeader());
+                    //TODO: backend: get followers
+                    ArrayList<String> followers = new ArrayList<>();
+                    for (String name: followers) {
+                        System.out.println(name);
+                    }
+                }
+
+                if (action.equals(Menu.POSTS)) {
+                    System.out.println(menu.getPostsHeader());
+                    ArrayList<Post> posts;
+                    posts = feedProvider.getRecentPosts(nickname);
+                    for (Post post: posts) {
+                        System.out.println(post.getAuthorNick() + " at " + post.getCreationDate() + " posted:");
+                        System.out.println(post.getText());
+                    }
+                }
+
+                if (action.equals(Menu.SEARCH)) {
+
+                    String searchedName = menu.getSearchedName();
+                    User searchedUser = session.selectUser(searchedName);
+                    if (searchedUser == null) {
+                        System.out.println(menu.getNoUserFound());
+                    } else {
+                        System.out.println(menu.getUserInfoHeader(searchedName));
+                        System.out.println(searchedUser.toString());
+                        //TODO: follow, unfollow, exit
+                    }
+                }
+
+                if (action.equals(Menu.EDIT)) {
+
+                }
             } else {
                 System.out.println(menu.getInvalidInput());
             }
