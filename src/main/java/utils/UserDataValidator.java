@@ -9,26 +9,29 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
-public class RegistryValidator extends Validator {
+public class UserDataValidator extends Validator {
     SimpleDateFormat dateFormat;
     @Getter ArrayList<String> errorMessages;
 
 
-    public RegistryValidator(BackendSession session) {
+    public UserDataValidator(BackendSession session) {
         super(session);
         dateFormat = new SimpleDateFormat("dd-MM-yyyy");
         dateFormat.setLenient(false);
         errorMessages = new ArrayList<>();
     }
 
-    public Boolean validateRegistry(String nick, String password, String repeatedPassword, String firstName,
-                                    String lastName, String birthDate, String bio) throws BackendException {
+
+    public Boolean validate(String nick, String password, String repeatedPassword, String firstName,
+                                    String lastName, String birthDate, String bio, boolean isNewUser) throws BackendException {
         errorMessages.clear();
         boolean validationPassed = true;
-        User user = session.selectUser(nick);
-        if (checkIfUserExists(user)) {
-            errorMessages.add(props.getProperty("duplicated_login"));
-            validationPassed = false;
+        if (isNewUser) {
+            User user = session.selectUser(nick);
+            if (checkIfUserExists(user)) {
+                errorMessages.add(props.getProperty("duplicated_login"));
+                validationPassed = false;
+            }
         }
         if (!validatePasswordsMatch(password, repeatedPassword)) {
             errorMessages.add(props.getProperty("passwords_dont_match"));
