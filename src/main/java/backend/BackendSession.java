@@ -39,13 +39,19 @@ public class BackendSession {
 
     private static PreparedStatement SELECT_USER;
     private static PreparedStatement SELECT_FOLLOWING_USERS;
+    private static PreparedStatement SELECT_FOLLOWERS;
     private static PreparedStatement SELECT_POSTS;
 
     private static PreparedStatement ADD_USER;
     private static PreparedStatement ADD_POST;
+    private static PreparedStatement ADD_FOLLOWER;
+    private static PreparedStatement ADD_FOLLOWING;
 
     private static PreparedStatement UPDATE_FOLLOWERS;
     private static PreparedStatement UPDATE_FOLLOWING;
+
+    private static PreparedStatement REMOVE_FOLLOWER;
+    private static PreparedStatement REMOVE_FOLLOWING;
 
 //    private static PreparedStatement DELETE_ALL_FROM_USERS;
 //    private static PreparedStatement UPDATE_INVARIANT;
@@ -57,11 +63,17 @@ public class BackendSession {
     private void prepareStatements() throws BackendException {
         try {
             SELECT_USER = session.prepare("SELECT * FROM users WHERE nick = ?");
+            SELECT_FOLLOWERS = session.prepare("SELECT * FROM followers WHERE nick = ?;");
             SELECT_FOLLOWING_USERS = session.prepare("SELECT * FROM following WHERE nick = ?;");
             SELECT_POSTS = session.prepare("SELECT * FROM posts WHERE authornick=? LIMIT 100;");
 
             ADD_USER = session.prepare("INSERT INTO users (nick, password, firstName, lastName, birthDate, bio) VALUES (?, ?, ?, ?, ?, ?);");
             ADD_POST = session.prepare("INSERT INTO posts (authornick, creationdate, text) VALUES (?, ?, ?);");
+            ADD_FOLLOWER = session.prepare("INSERT INTO followers (nick, followerNick, followerFirstName, followerLastName, followerBirthDate, followerBio) VALUES (?, ?, ?, ?, ?, ?);");
+            ADD_FOLLOWING = session.prepare("INSERT INTO following (nick, followingNick, followingFirstName, followingLastName, followingBirthDate, followingBio) VALUES (?, ?, ?, ?, ?, ?);");
+
+            REMOVE_FOLLOWER = session.prepare("DELETE FROM followers WHERE nick=? AND followerNick=?;");
+            REMOVE_FOLLOWING = session.prepare("DELETE FROM following WHERE nick=? AND followingNick=?;");
 //            UPDATE_FOLLOWERS = session.prepare("UPDATE followers SET followerFirstName=?, followerLastName=?, followerBirthDate=?, followerBio=? WHERE followerNick=? ALLOW FILTERING;");
 //            UPDATE_FOLLOWING = session.prepare("UPDATE following SET followingFirstName=?, followingLastName=?, followingBirthDate=?, followingBio=? WHERE followingNick=? ALLOW FILTERING;");
 //            INSERT_INTO_USERS = session
@@ -81,13 +93,7 @@ public class BackendSession {
         BoundStatement bs = new BoundStatement(SELECT_USER);
         bs.bind(nickname);
 
-        ResultSet rs = null;
-
-        try {
-            rs = session.execute(bs);
-        } catch (Exception e) {
-            throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
-        }
+        ResultSet rs = executeStatement(bs, "Could not login due to database problems. Details: ");
 
         Row record = rs.one();
         if (record == null) return null;
@@ -96,19 +102,12 @@ public class BackendSession {
     }
 
     public ArrayList<String> selectFollowingUsersNicknames(String nick) throws BackendException {
-
         BoundStatement bs = new BoundStatement(SELECT_FOLLOWING_USERS);
         bs.bind(nick);
 
         ArrayList<String> followingList = new ArrayList<>();
 
-        ResultSet rs = null;
-
-        try {
-            rs = session.execute(bs);
-        } catch (Exception e) {
-            throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
-        }
+        ResultSet rs = executeStatement(bs, "Could not perform a query. ");
 
         for (Row row : rs) {
             followingList.add(row.getString("followingNick"));
@@ -117,20 +116,34 @@ public class BackendSession {
         return followingList;
     }
 
+    public ArrayList<User> selectFollowers(String nick) throws BackendException {
+        BoundStatement bs = new BoundStatement(SELECT_FOLLOWERS);
+        bs.bind(nick);
+
+        ArrayList<User> followerList = new ArrayList<>();
+
+        ResultSet rs = executeStatement(bs, "Could not fetch follower list. ");
+
+        for (Row row : rs) {
+            String fNick = row.getString("followingNick");
+            String fFirstName = row.getString("followingFirstName");
+            String fLastName = row.getString("followingLastName");
+            String fBirthDate = row.getString("followingBirthDate");
+            String fBio = row.getString("followingBio");
+            followerList.add(new User(fNick, "", fFirstName, fLastName, fBirthDate, fBio));
+        }
+
+        return followerList;
+    }
+
     public ArrayList<Post> selectPosts(String followingNick) throws BackendException {
         BoundStatement bs = new BoundStatement(SELECT_POSTS);
         bs.bind(followingNick);
 //        bs.setList("nicklist", followingNicks);
 
-        ResultSet rs = null;
+        ResultSet rs = executeStatement(bs, "Could not fetch recent posts. ");
 
         ArrayList<Post> posts = new ArrayList<>();
-
-        try {
-            rs = session.execute(bs);
-        } catch (Exception e) {
-            throw new BackendException("Could not fetch recent posts. " + e.getMessage() + ".", e);
-        }
 
         for (Row row : rs) {
             String nick = row.getString("authorNick");
@@ -148,24 +161,44 @@ public class BackendSession {
         BoundStatement bs = new BoundStatement(ADD_USER);
         bs.bind(nick, password, firstName, lastName, birthDate, bio);
 
-        try {
-            session.execute(bs);
-        } catch (Exception e) {
-            throw new BackendException("Could not register to the portal due to database problems. Details: " + e.getMessage() + ".", e);
-        }
-
-        //logger.info("model.User " + name + " upserted");
+        executeStatement(bs, "Could not register to the portal due to database problems. Details: ");
     }
 
     public void addPost(String nick, String content) throws BackendException {
         BoundStatement bs = new BoundStatement(ADD_POST);
         bs.bind(nick, new Date(System.currentTimeMillis()), content);
 
-        try {
-            session.execute(bs);
-        } catch (Exception e) {
-            throw new BackendException("Could not add post due to database problems. Details:" + e.getMessage() + ".", e);
-        }
+        executeStatement(bs, "Could not add post due to database problems. Details: ");
+    }
+
+    public void addFollower(String nick, User followerToAdd) throws BackendException {
+        BoundStatement bs = new BoundStatement(ADD_FOLLOWER);
+        bs.bind(nick, followerToAdd.getNickname(), followerToAdd.getFirstName(), followerToAdd.getLastName(),
+                followerToAdd.getBirthDate(), followerToAdd.getBio());
+
+        executeStatement(bs, "Could not follow user due to database problems. Details: ");
+    }
+
+    public void addFollowing(String nick, User followedUserToAdd) throws BackendException {
+        BoundStatement bs = new BoundStatement(ADD_FOLLOWING);
+        bs.bind(nick, followedUserToAdd.getNickname(), followedUserToAdd.getFirstName(),
+                followedUserToAdd.getLastName(), followedUserToAdd.getBirthDate(), followedUserToAdd.getBio());
+
+        executeStatement(bs, "Could not follow user due to database problems. Details: ");
+    }
+
+    public void removeFollower(String nick, String followerToRemoveNick) throws BackendException {
+        BoundStatement bs = new BoundStatement(ADD_FOLLOWER);
+        bs.bind(nick, followerToRemoveNick);
+
+        executeStatement(bs, "Could not unfollow user due to database problems. Details: ");
+    }
+
+    public void removeFollowing(String nick, String followedUserToRemoveNick) throws BackendException {
+        BoundStatement bs = new BoundStatement(ADD_FOLLOWING);
+        bs.bind(nick, followedUserToRemoveNick);
+
+        executeStatement(bs, "Could not unfollow user due to database problems. Details: ");
     }
 
     public void updateFollowers(User updatedUser) throws BackendException {
@@ -173,11 +206,7 @@ public class BackendSession {
         bs.bind(updatedUser.getFirstName(), updatedUser.getLastName(), updatedUser.getBirthDate(),
                 updatedUser.getBio(), updatedUser.getNickname());
 
-        try {
-            session.execute(bs);
-        } catch (Exception e) {
-            throw new BackendException("Could not edit profile due to database problems. Details:" + e.getMessage() + ".", e);
-        }
+        executeStatement(bs, "Could not edit profile due to database problems. Details: ");
     }
 
     public void updateFollowing(User updatedUser) throws BackendException {
@@ -185,11 +214,17 @@ public class BackendSession {
         bs.bind(updatedUser.getFirstName(), updatedUser.getLastName(), updatedUser.getBirthDate(),
                 updatedUser.getBio(), updatedUser.getNickname());
 
+        executeStatement(bs, "Could not edit profile due to database problems. Details: ");
+    }
+
+    private ResultSet executeStatement(BoundStatement stmt, String failMessage) throws BackendException {
+        ResultSet rs = null;
         try {
-            session.execute(bs);
+            rs = session.execute(stmt);
         } catch (Exception e) {
-            throw new BackendException("Could not edit profile due to database problems. Details:" + e.getMessage() + ".", e);
+            throw new BackendException(failMessage + e.getMessage() + ".", e);
         }
+        return rs;
     }
 
     protected void finalize() {
