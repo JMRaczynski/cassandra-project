@@ -3,10 +3,7 @@ import backend.BackendSession;
 import cli.Menu;
 import model.Post;
 import model.User;
-import utils.FeedProvider;
-import utils.LoginValidator;
-import utils.PostCreator;
-import utils.UserDataValidator;
+import utils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,7 +29,6 @@ public class Main {
             ex.printStackTrace();
         }
 
-        //TODO: uncomment when database connected
         BackendSession session = new BackendSession(contactPoint, keyspace);
         Menu menu = new Menu();
         String answer;
@@ -41,10 +37,11 @@ public class Main {
         UserDataValidator userDataValidator = new UserDataValidator(session);
         PostCreator postCreator = new PostCreator(session);
         FeedProvider feedProvider = new FeedProvider(session);
-
+        FollowerManager followerManager = new FollowerManager(session);
 
 //		String output = session.selectAllPosts();
 //		System.out.println("Table contents: \n" + output);
+
         System.out.println(menu.getPreLoginMenu());
         answer = menu.readAnswer();
         while (!(answer.equals(Menu.LOGIN) || answer.equals(Menu.REGISTER))) {
@@ -130,6 +127,7 @@ public class Main {
                     for (Post post: posts) {
                         System.out.println(post.getAuthorNick() + " at " + post.getCreationDate() + " posted:");
                         System.out.println(post.getText());
+                        System.out.println("\t\t\t***\t\t\t***\t\t\t");
                     }
                 }
 
@@ -142,13 +140,32 @@ public class Main {
                     } else {
                         System.out.println(menu.getUserInfoHeader(searchedName));
                         System.out.println(searchedUser.toString());
-                        //TODO: follow, unfollow, exit
+
+                        boolean follow = true; //TODO: backend: check if user is not already followed
+                        boolean unfollow = false;
+                        boolean valid = false;
+                        while (!valid) {
+                            System.out.println(menu.getUserMenu(follow, unfollow));
+                            String userAction = menu.readAnswer();
+                            if (!(userAction.equals(Menu.FOLLOW) || userAction.equals(Menu.UNFOLLOW) || userAction.equals(Menu.EXIT))) {
+                                System.out.println(menu.getInvalidInput());
+                            } else {
+                                if (userAction.equals(Menu.FOLLOW)) {
+                                    followerManager.followUser(loggedUser, searchedUser);
+                                    System.out.println("Now you are following " + searchedName);
+                                } else if (userAction.equals(Menu.UNFOLLOW)) {
+                                    followerManager.unfollowUser(loggedUser, searchedUser);
+                                    System.out.println("You are no longer following " + searchedName);
+                                }
+                                valid = true;
+                            }
+                        }
                     }
                 }
-
-                if (action.equals(Menu.EDIT)) {
-
-                }
+// DISABLED
+//                if (action.equals(Menu.EDIT)) {
+//
+//                }
             } else {
                 System.out.println(menu.getInvalidInput());
             }

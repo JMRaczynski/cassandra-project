@@ -59,6 +59,13 @@ public class Menu {
 
     public String getNoUserFound() { return props.getProperty("no_user_found") + ":"; }
 
+    public String getSearchedName() {
+        System.out.println(props.getProperty("search_for"));
+        return readAnswer();
+    }
+
+    public String getUserInfoHeader(String nickname) { return props.getProperty("user_info") + " " + nickname; }
+
     public String getPreLoginMenu() {
 
         StringBuilder builder = new StringBuilder();
@@ -77,7 +84,7 @@ public class Menu {
         builder.append(S_FOLLOWING).append(": ").append(props.getProperty("show_following")).append("\n");
         builder.append(POSTS).append(": ").append(props.getProperty("show_posts")).append("\n");
         builder.append(SEARCH).append(": ").append(props.getProperty("search_for_users")).append("\n");
-        builder.append(EDIT).append(": ").append(props.getProperty("change_profile")).append("\n");
+        //builder.append(EDIT).append(": ").append(props.getProperty("change_profile")).append("\n");
         builder.append(EXIT).append(": ").append(props.getProperty("exit"));
         return builder.toString();
     }
@@ -130,12 +137,16 @@ public class Menu {
         }
     }
 
-    public String getSearchedName() {
-        System.out.println(props.getProperty("search_for"));
-        return readAnswer();
-    }
-
-    public String getUserInfoHeader(String nickname) {
-        return props.getProperty("user_info") + " " + nickname;
+    public String getUserMenu(boolean follow, boolean unfollow) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(props.getProperty("available_actions")).append(":\n");
+        if (follow) {
+            builder.append(FOLLOW).append(": ").append(props.getProperty("follow")).append("\n");
+        }
+        if (unfollow) {
+            builder.append(UNFOLLOW).append(": ").append(props.getProperty("unfollow")).append("\n");
+        }
+        builder.append(EXIT).append(": ").append(props.getProperty("exit"));
+        return builder.toString();
     }
 }
