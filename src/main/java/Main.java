@@ -42,31 +42,14 @@ public class Main {
         PostCreator postCreator = new PostCreator(session);
         FeedProvider feedProvider = new FeedProvider(session);
 
-//		for (int i = 0; i < 30; i++) {
-//			new Thread(() -> {
-//				for (int j = 0; j < 1000000; j++) {
-//					try {
-//						session.updateInvariant(Thread.currentThread().getId());
-//						System.out.println(session.selectInvariant());
-//					} catch (BackendException e) {
-//						e.printStackTrace();
-//					}
-//				}
-//			}).start();
-//		}
 
-//		session.upsertUser("PP", "Adam", 609, "A St");
-//		session.upsertUser("PP", "Ola", 509, null);
-//		session.upsertUser("UAM", "Ewa", 720, "B St");
-//		session.upsertUser("PP", "Kasia", 713, "C St");
-//
 //		String output = session.selectAllPosts();
 //		System.out.println("Table contents: \n" + output);
         System.out.println(menu.getPreLoginMenu());
         answer = menu.readAnswer();
         while (!(answer.equals(Menu.LOGIN) || answer.equals(Menu.REGISTER))) {
             System.out.println(menu.getInvalidInput());
-            answer = menu.readAnswer();
+            answer = menu.readAnswer().toUpperCase();
         }
 
         if (answer.equals(Menu.LOGIN)) {
@@ -99,12 +82,14 @@ public class Main {
                 }
             }
         }
+
+        User loggedUser = session.selectUser(nickname);
         boolean exit = false;
         while (!exit) {
 
 //            System.out.println(feedProvider.getRecentPosts(nickname));
             System.out.println(menu.getMainMenu());
-            String action = menu.readAnswer();
+            String action = menu.readAnswer().toUpperCase();
             if (Arrays.asList(Menu.valid_actions).contains(action)) {
                 if (action.equals(Menu.EXIT)) {
                     exit = true;
