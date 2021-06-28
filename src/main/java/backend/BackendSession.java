@@ -39,7 +39,9 @@ public class BackendSession {
 
     private static PreparedStatement SELECT_USER;
     private static PreparedStatement SELECT_FOLLOWING_USERS;
+    private static PreparedStatement SELECT_FOLLOWING;
     private static PreparedStatement SELECT_FOLLOWERS;
+    private static PreparedStatement SELECT_FOLLOWER;
     private static PreparedStatement SELECT_POSTS;
 
     private static PreparedStatement ADD_USER;
@@ -63,7 +65,9 @@ public class BackendSession {
     private void prepareStatements() throws BackendException {
         try {
             SELECT_USER = session.prepare("SELECT * FROM users WHERE nick = ?");
+            SELECT_FOLLOWER = session.prepare("SELECT * FROM followers WHERE nick = ? AND followerNick = ?;");
             SELECT_FOLLOWERS = session.prepare("SELECT * FROM followers WHERE nick = ?;");
+            SELECT_FOLLOWING = session.prepare("SELECT * FROM following WHERE nick = ? AND followingNick = ?;");
             SELECT_FOLLOWING_USERS = session.prepare("SELECT * FROM following WHERE nick = ?;");
             SELECT_POSTS = session.prepare("SELECT * FROM posts WHERE authornick=? LIMIT 100;");
 
@@ -79,9 +83,6 @@ public class BackendSession {
 //            INSERT_INTO_USERS = session
 //                    .prepare("INSERT INTO users (companyName, name, phone, street) VALUES (?, ?, ?, ?);");
 //            DELETE_ALL_FROM_USERS = session.prepare("TRUNCATE users;");
-//            UPDATE_INVARIANT = session.prepare("UPDATE Invariant SET col1 = ?, col2 = ? WHERE id = 0;");
-//            SELECT_INVARIANT = session.prepare("SELECT * FROM invariant WHERE id = 0;");
-//            INCREMENT_URL = session.prepare("UPDATE pageviewcounts SET counter = counter + 1, WHERE url = 'counter';");
         } catch (Exception e) {
             throw new BackendException("Could not prepare statements. " + e.getMessage() + ".", e);
         }
@@ -154,6 +155,30 @@ public class BackendSession {
         }
 
         return posts;
+    }
+
+    public User selectFollower(String followerNick, String followedNick) throws BackendException {
+        BoundStatement bs = new BoundStatement(SELECT_FOLLOWER);
+        bs.bind(followedNick, followerNick);
+
+        ResultSet rs = executeStatement(bs, "Could not fetch information about user. ");
+
+        Row record = rs.one();
+        if (record == null) return null;
+        return new User(followerNick, "", record.getString("followerFirstName"),
+                record.getString("followerLastName"), record.getString("followerBirthDate"), record.getString("followerBio"));
+    }
+
+    public User selectFollowing(String followingNick, String followerNick) throws BackendException {
+        BoundStatement bs = new BoundStatement(SELECT_FOLLOWING);
+        bs.bind(followerNick, followingNick);
+
+        ResultSet rs = executeStatement(bs, "Could not fetch information about user. ");
+
+        Row record = rs.one();
+        if (record == null) return null;
+        return new User(followingNick, "", record.getString("followingFirstName"),
+                record.getString("followingLastName"), record.getString("followingBirthDate"), record.getString("followingBio"));
     }
 
     public void addUser(String nick, String password, String firstName,
