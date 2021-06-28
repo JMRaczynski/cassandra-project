@@ -126,11 +126,11 @@ public class BackendSession {
         ResultSet rs = executeStatement(bs, "Could not fetch follower list. ");
 
         for (Row row : rs) {
-            String fNick = row.getString("followingNick");
-            String fFirstName = row.getString("followingFirstName");
-            String fLastName = row.getString("followingLastName");
-            String fBirthDate = row.getString("followingBirthDate");
-            String fBio = row.getString("followingBio");
+            String fNick = row.getString("followerNick");
+            String fFirstName = row.getString("followerFirstName");
+            String fLastName = row.getString("followerLastName");
+            String fBirthDate = row.getString("followerBirthDate");
+            String fBio = row.getString("followerBio");
             followerList.add(new User(fNick, "", fFirstName, fLastName, fBirthDate, fBio));
         }
 

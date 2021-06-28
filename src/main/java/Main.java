@@ -113,10 +113,9 @@ public class Main {
 
                 if (action.equals(Menu.S_FOLLOWERS)) {
                     System.out.println(menu.getFollowersHeader());
-                    //TODO: backend: get followers
-                    ArrayList<String> followers = new ArrayList<>();
-                    for (String name: followers) {
-                        System.out.println(name);
+                    ArrayList<User> followers = session.selectFollowers(nickname);
+                    for (User user: followers) {
+                        System.out.println(user.getNickname());
                     }
                 }
 
@@ -141,8 +140,16 @@ public class Main {
                         System.out.println(menu.getUserInfoHeader(searchedName));
                         System.out.println(searchedUser.toString());
 
-                        boolean follow = true; //TODO: backend: check if user is not already followed
+                        boolean follow = false;
                         boolean unfollow = false;
+                        try {
+                            unfollow = followerManager.isFollowed(loggedUser, searchedUser);
+                            if (!unfollow) {
+                                follow = true;
+                            }
+                        } catch (BackendException exception) {
+                            System.out.println(exception.getMessage());
+                        }
                         boolean valid = false;
                         while (!valid) {
                             System.out.println(menu.getUserMenu(follow, unfollow));

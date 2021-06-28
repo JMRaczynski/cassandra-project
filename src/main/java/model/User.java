@@ -17,9 +17,9 @@ public @Data class User {
     public String toString() {
         StringBuilder builder = new StringBuilder();
 //        builder.append(nickname).append("\n");
-        builder.append(firstName).append(" ").append(lastName).append("\n");
-        builder.append(birthDate).append("\n");
-        builder.append(bio);
+        builder.append("Name: ").append(firstName).append(" ").append(lastName).append("\n");
+        builder.append("Birthdate: ").append(birthDate).append("\n");
+        builder.append("Bio: ").append(bio);
         return builder.toString();
     }
 }
