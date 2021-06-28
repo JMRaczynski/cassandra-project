@@ -35,7 +35,7 @@ public class Main {
 
         LoginValidator loginValidator = new LoginValidator(session);
         UserDataValidator userDataValidator = new UserDataValidator(session);
-        PostCreator postCreator = new PostCreator(session);
+        PostManager postManager = new PostManager(session);
         FeedProvider feedProvider = new FeedProvider(session);
         FollowerManager followerManager = new FollowerManager(session);
 
@@ -96,7 +96,7 @@ public class Main {
                     //TODO: ograniczyć liczbę przyjmowanych znaków
                     String post = menu.processNewPost();
                     if (post != null) {
-                        boolean created = postCreator.createPost(nickname, post);
+                        boolean created = postManager.createPost(nickname, post);
                         if (created) {
                             System.out.println(menu.getPostAdded());
                         }

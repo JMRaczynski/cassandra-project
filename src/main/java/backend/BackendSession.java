@@ -1,6 +1,8 @@
 package backend;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import model.Post;
 import model.User;
 import org.slf4j.Logger;
@@ -28,10 +30,10 @@ public class BackendSession {
 
     public BackendSession(String contactPoint, String keyspace) throws BackendException {
 
-        Cluster cluster = Cluster.builder().addContactPoint(contactPoint).build();
+        Cluster cluster = Cluster.builder().addContactPoint(contactPoint).withRetryPolicy(DefaultRetryPolicy.INSTANCE).build();
         try {
             session = cluster.connect(keyspace);
-        } catch (Exception e) {
+        } catch (NoHostAvailableException e) {
             throw new BackendException("Could not connect to the cluster. " + e.getMessage() + ".", e);
         }
         prepareStatements();
@@ -48,6 +50,8 @@ public class BackendSession {
     private static PreparedStatement ADD_POST;
     private static PreparedStatement ADD_FOLLOWER;
     private static PreparedStatement ADD_FOLLOWING;
+
+    private static PreparedStatement UPDATE_POST;
 
     private static PreparedStatement UPDATE_FOLLOWERS;
     private static PreparedStatement UPDATE_FOLLOWING;
@@ -78,6 +82,8 @@ public class BackendSession {
 
             REMOVE_FOLLOWER = session.prepare("DELETE FROM followers WHERE nick=? AND followerNick=?;");
             REMOVE_FOLLOWING = session.prepare("DELETE FROM following WHERE nick=? AND followingNick=?;");
+
+            UPDATE_POST =  session.prepare("UPDATE posts SET text=? WHERE authorNick=? AND creationDate=?");
 //            UPDATE_FOLLOWERS = session.prepare("UPDATE followers SET followerFirstName=?, followerLastName=?, followerBirthDate=?, followerBio=? WHERE followerNick=? ALLOW FILTERING;");
 //            UPDATE_FOLLOWING = session.prepare("UPDATE following SET followingFirstName=?, followingLastName=?, followingBirthDate=?, followingBio=? WHERE followingNick=? ALLOW FILTERING;");
 //            INSERT_INTO_USERS = session
@@ -224,6 +230,13 @@ public class BackendSession {
         bs.bind(nick, followedUserToRemoveNick);
 
         executeStatement(bs, "Could not unfollow user due to database problems. Details: ");
+    }
+
+    public void updatePost(Post updatedPost) throws BackendException {
+        BoundStatement bs = new BoundStatement(UPDATE_POST);
+        bs.bind(updatedPost.getText(), updatedPost.getAuthorNick(), updatedPost.getCreationDate());
+
+        executeStatement(bs, "Could not edit post due to database problems. Details: ");
     }
 
     public void updateFollowers(User updatedUser) throws BackendException {

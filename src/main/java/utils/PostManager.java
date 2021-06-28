@@ -2,16 +2,25 @@ package utils;
 
 import backend.BackendException;
 import backend.BackendSession;
+import model.Post;
 
-public class PostCreator extends Validator {
+public class PostManager extends Validator {
 
-    public PostCreator(BackendSession session) {
+    public PostManager(BackendSession session) {
         super(session);
     }
 
     public boolean createPost(String authorNick, String content) throws BackendException {
         if (validatePostLength(content)) {
             session.addPost(authorNick, content);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean updatePost(Post post) throws BackendException {
+        if (validatePostLength(post.getText())) {
+            session.updatePost(post);
             return true;
         }
         return false;
