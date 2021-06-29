@@ -242,15 +242,12 @@ public class Main {
     }
 
     private static void handleException(Exception e) {
-        Menu menu = new Menu();
         if (e.getCause().getClass().equals(NoHostAvailableException.class)) {
-            System.out.println(menu.getFatalError());
+            System.out.println(e.getMessage());
             //TODO: jakiś delay
             System.exit(1);
-        } else if (e.getCause().getCause().equals(RequestTimeoutException.class)) {
-            System.out.println(menu.getTryAgain());
         } else {
-            System.out.println(menu.getUnknownError());
+            System.out.println(e.getMessage());
         }
     }
 }
