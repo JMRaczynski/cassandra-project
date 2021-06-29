@@ -63,6 +63,12 @@ public class Menu {
 
     public String getNoUserFound() { return props.getProperty("no_user_found") + ":"; }
 
+    public String getUnknownError() { return props.getProperty("unknown_error"); }
+
+    public String getTryAgain() { return props.getProperty("try_again"); }
+
+    public String getFatalError() { return props.getProperty("fatal_error"); }
+
     public String getSearchedName() {
         System.out.println(props.getProperty("search_for"));
         return readAnswer();
