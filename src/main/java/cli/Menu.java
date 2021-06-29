@@ -1,8 +1,10 @@
 package cli;
 
+import model.Post;
 import model.User;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Scanner;
@@ -51,6 +53,8 @@ public class Menu {
 
     public String getPostAdded() { return props.getProperty("post_added"); }
 
+    public String getPostEdited() { return props.getProperty("post_edited"); }
+
     public String getFollowingHeader() { return props.getProperty("following_header") + ":"; }
 
     public String getFollowersHeader() { return props.getProperty("followers_header") + ":"; }
@@ -84,7 +88,7 @@ public class Menu {
         builder.append(S_FOLLOWING).append(": ").append(props.getProperty("show_following")).append("\n");
         builder.append(POSTS).append(": ").append(props.getProperty("show_posts")).append("\n");
         builder.append(SEARCH).append(": ").append(props.getProperty("search_for_users")).append("\n");
-        //builder.append(EDIT).append(": ").append(props.getProperty("change_profile")).append("\n");
+        builder.append(EDIT).append(": ").append(props.getProperty("edit_post")).append("\n");
         builder.append(EXIT).append(": ").append(props.getProperty("exit"));
         return builder.toString();
     }
@@ -148,5 +152,46 @@ public class Menu {
         }
         builder.append(EXIT).append(": ").append(props.getProperty("exit"));
         return builder.toString();
+    }
+
+    public Integer getPostNumber(ArrayList<Post> posts) {
+        for (int i=0; i<posts.size(); i++) {
+            System.out.println(i+1 + ": " + posts.get(i).getText());
+            System.out.println("\n\t\t\t***\t\t\t***\t\t\t\n");
+        }
+        boolean valid = false;
+        Integer number = null;
+        while (!valid) {
+            System.out.println(props.getProperty("select_post_to_edit"));
+            String answer = readAnswer();
+            try {
+                number = Integer.valueOf(answer);
+                if (number < 1 || number > posts.size()) {
+                    System.out.println(props.getProperty("invalid_number"));
+                } else {
+                    valid = true;
+                }
+            } catch (Exception e) {
+                System.out.println(props.getProperty("invalid_number"));
+            }
+        }
+        return number-1;
+    }
+
+    public String processPostEdit(Post post) {
+        System.out.println(props.getProperty("edit_header"));
+        System.out.println(post.getText());
+        System.out.println(props.getProperty("edit_information"));
+        String edited = readAnswer();
+        String answer = "F";
+        while (!(answer.equals(YES) || answer.equals(NO))) {
+            System.out.println(props.getProperty("save_changes"));
+            answer = readAnswer();
+        }
+        if (answer.equals(YES)) {
+            return edited;
+        } else {
+            return null;
+        }
     }
 }

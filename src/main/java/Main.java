@@ -126,7 +126,7 @@ public class Main {
                     for (Post post: posts) {
                         System.out.println(post.getAuthorNick() + " at " + post.getCreationDate() + " posted:");
                         System.out.println(post.getText());
-                        System.out.println("\t\t\t***\t\t\t***\t\t\t");
+                        System.out.println("\n\t\t\t***\t\t\t***\t\t\t\n");
                     }
                 }
 
@@ -169,16 +169,23 @@ public class Main {
                         }
                     }
                 }
-// DISABLED
-//                if (action.equals(Menu.EDIT)) {
-//
-//                }
+
+                if (action.equals(Menu.EDIT)) {
+                    ArrayList<Post> posts = session.selectPosts(nickname);
+                    Integer postNumber = menu.getPostNumber(posts);
+                    String post = menu.processPostEdit(posts.get(postNumber));
+                    if (post != null) {
+                        //TODO: backend: save edited post
+//                        boolean created = postManager.createPost(nickname, post);
+//                        if (created) {
+//                            System.out.println(menu.getPostEdited());
+//                        }
+                    }
+                }
             } else {
                 System.out.println(menu.getInvalidInput());
             }
         }
-
-        //		session.deleteAll();
 
         System.exit(0);
     }
