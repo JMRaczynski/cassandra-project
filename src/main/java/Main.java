@@ -53,7 +53,7 @@ public class Main {
 //		System.out.println("Table contents: \n" + output);
 
         System.out.println(menu.getPreLoginMenu());
-        answer = menu.readAnswer();
+        answer = menu.readAnswer().toUpperCase();
         while (!(answer.equals(Menu.LOGIN) || answer.equals(Menu.REGISTER))) {
             System.out.println(menu.getInvalidInput());
             answer = menu.readAnswer().toUpperCase();
@@ -109,12 +109,12 @@ public class Main {
 
             System.out.println(menu.getMainMenu());
             String action = menu.readAnswer().toUpperCase();
-            if (Arrays.asList(Menu.valid_actions).contains(action) || action.contains("SPAM")) {
+            if (Arrays.asList(Menu.valid_actions).contains(action)) {
                 if (action.equals(Menu.EXIT)) {
                     exit = true;
                 }
 
-                if (action.equals("SPAM")) {
+                if (action.equals(Menu.STRESS_SELECT)) {
                     for (int i = 0; i < 16; i++) {
                         String finalNickname = nickname;
                         new Thread(() -> {
@@ -129,7 +129,7 @@ public class Main {
                      }
                 }
 
-                if (action.equals("SPAM2")) {
+                if (action.equals(Menu.STRESS_UPSERT)) {
                     for (int i = 0; i < 1000; i++) {
                         try {
                             session.addPost(nickname, null);
@@ -222,7 +222,7 @@ public class Main {
                         boolean valid = false;
                         while (!valid) {
                             System.out.println(menu.getUserMenu(follow, unfollow));
-                            String userAction = menu.readAnswer();
+                            String userAction = menu.readAnswer().toUpperCase();
                             if (!(userAction.equals(Menu.FOLLOW) || userAction.equals(Menu.UNFOLLOW) || userAction.equals(Menu.EXIT))) {
                                 System.out.println(menu.getInvalidInput());
                             } else {

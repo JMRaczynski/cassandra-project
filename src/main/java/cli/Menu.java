@@ -24,7 +24,9 @@ public class Menu {
     public static final String NO="N";
     public static final String FOLLOW="F";
     public static final String UNFOLLOW="U";
-    public static final String[] valid_actions = {S_FOLLOWERS, S_FOLLOWING, SEARCH, POSTS, WRITE, EDIT, EXIT};
+    public static final String STRESS_SELECT="SPAM";
+    public static final String STRESS_UPSERT="SPAM2";
+    public static final String[] valid_actions = {S_FOLLOWERS, S_FOLLOWING, SEARCH, POSTS, WRITE, EDIT, EXIT, STRESS_SELECT, STRESS_UPSERT};
 
 
     private static final String PROPERTIES_FILENAME = "interface.properties";
