@@ -9,9 +9,11 @@ import org.apache.tools.ant.taskdefs.Sleep;
 import utils.*;
 
 import java.io.IOException;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.Random;
 
 public class Main {
 
@@ -107,9 +109,34 @@ public class Main {
 
             System.out.println(menu.getMainMenu());
             String action = menu.readAnswer().toUpperCase();
-            if (Arrays.asList(Menu.valid_actions).contains(action)) {
+            if (Arrays.asList(Menu.valid_actions).contains(action) || action.contains("SPAM")) {
                 if (action.equals(Menu.EXIT)) {
                     exit = true;
+                }
+
+                if (action.equals("SPAM")) {
+                    for (int i = 0; i < 16; i++) {
+                        String finalNickname = nickname;
+                        new Thread(() -> {
+                            for (int j = 0; j < 100000; j++) {
+                                try {
+                                    feedProvider.getRecentPosts(finalNickname);
+                                } catch (BackendException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }).start();
+                     }
+                }
+
+                if (action.equals("SPAM2")) {
+                    for (int i = 0; i < 1000; i++) {
+                        try {
+                            session.addPost(nickname, null);
+                        } catch (BackendException e) {
+                            handleException(e);
+                        }
+                    }
                 }
 
                 if (action.equals(Menu.WRITE)) {
@@ -248,6 +275,9 @@ public class Main {
             System.exit(1);
         } else {
             System.out.println(e.getMessage());
+//            if (!e.getCause().getClass().equals(RequestTimeoutException.class)) {
+//                e.printStackTrace();
+//            }
         }
     }
 }
