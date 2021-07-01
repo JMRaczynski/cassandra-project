@@ -122,7 +122,7 @@ public class Main {
                                 try {
                                     feedProvider.getRecentPosts(finalNickname);
                                 } catch (BackendException e) {
-                                    e.printStackTrace();
+                                    handleException(e);
                                 }
                             }
                         }).start();

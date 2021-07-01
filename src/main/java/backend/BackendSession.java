@@ -218,14 +218,14 @@ public class BackendSession {
     }
 
     public void removeFollower(String nick, String followerToRemoveNick) throws BackendException {
-        BoundStatement bs = new BoundStatement(ADD_FOLLOWER);
+        BoundStatement bs = new BoundStatement(REMOVE_FOLLOWER);
         bs.bind(nick, followerToRemoveNick);
 
         executeStatement(bs, "Could not unfollow user.");
     }
 
     public void removeFollowing(String nick, String followedUserToRemoveNick) throws BackendException {
-        BoundStatement bs = new BoundStatement(ADD_FOLLOWING);
+        BoundStatement bs = new BoundStatement(REMOVE_FOLLOWING);
         bs.bind(nick, followedUserToRemoveNick);
 
         executeStatement(bs, "Could not unfollow user.");
