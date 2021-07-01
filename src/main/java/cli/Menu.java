@@ -63,7 +63,14 @@ public class Menu {
 
     public String getPostsHeader() { return props.getProperty("posts_header") + ":"; }
 
-    public String getNoUserFound() { return props.getProperty("no_user_found") + ":"; }
+    public String getNoUserFound() { return props.getProperty("no_user_found"); }
+
+    public String getEmptyPost() { return props.getProperty("empty_post"); }
+
+    public String getSpamStart() { return props.getProperty("spam_start"); }
+
+    public String getSpamEnd() { return props.getProperty("spam_end"); }
+
 
     public String getSearchedName() {
         System.out.println(props.getProperty("search_for"));
@@ -136,7 +143,7 @@ public class Menu {
             System.out.println(props.getProperty("publish"));
             answer = readAnswer();
         }
-        if (answer.equals(YES)) {
+        if (answer.equals(YES) && !post.equals("")) {
             return post;
         } else {
             return null;
@@ -190,7 +197,7 @@ public class Menu {
             System.out.println(props.getProperty("save_changes"));
             answer = readAnswer();
         }
-        if (answer.equals(YES)) {
+        if (answer.equals(YES) && !edited.equals("")) {
             return edited;
         } else {
             return null;

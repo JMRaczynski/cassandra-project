@@ -130,6 +130,7 @@ public class Main {
                 }
 
                 if (action.equals(Menu.STRESS_UPSERT)) {
+                    System.out.println(menu.getSpamStart());
                     for (int i = 0; i < 1000; i++) {
                         try {
                             session.addPost(nickname, null);
@@ -137,10 +138,10 @@ public class Main {
                             handleException(e);
                         }
                     }
+                    System.out.println(menu.getSpamEnd());
                 }
 
                 if (action.equals(Menu.WRITE)) {
-                    //TODO: ograniczyć liczbę przyjmowanych znaków
                     String post = menu.processNewPost();
                     if (post != null) {
                         boolean created = false;
@@ -152,6 +153,8 @@ public class Main {
                         if (created) {
                             System.out.println(menu.getPostAdded());
                         }
+                    } else {
+                        System.out.println(menu.getEmptyPost());
                     }
                 }
 
@@ -255,6 +258,8 @@ public class Main {
                             if (edited) {
                                 System.out.println(menu.getPostEdited());
                             }
+                        } else {
+                            System.out.println(menu.getEmptyPost());
                         }
                     } catch (Exception ex) {
                         handleException(ex);
@@ -271,7 +276,6 @@ public class Main {
     private static void handleException(Exception e) {
         if (e.getCause().getClass().equals(NoHostAvailableException.class)) {
             System.out.println(e.getMessage());
-            //TODO: jakiś delay
             System.exit(1);
         } else {
             System.out.println(e.getMessage());
