@@ -60,7 +60,7 @@ public class UserDataValidator extends Validator {
         if (validationPassed) {
             session.addUser(nick, password, firstName, lastName, birthDate, bio);
         }
-        System.out.println(errorMessages);
+//        System.out.println(errorMessages);
         return validationPassed;
     }
 
