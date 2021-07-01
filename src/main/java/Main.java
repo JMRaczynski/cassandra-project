@@ -9,9 +9,11 @@ import org.apache.tools.ant.taskdefs.Sleep;
 import utils.*;
 
 import java.io.IOException;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.Random;
 
 public class Main {
 
@@ -51,7 +53,7 @@ public class Main {
 //		System.out.println("Table contents: \n" + output);
 
         System.out.println(menu.getPreLoginMenu());
-        answer = menu.readAnswer();
+        answer = menu.readAnswer().toUpperCase();
         while (!(answer.equals(Menu.LOGIN) || answer.equals(Menu.REGISTER))) {
             System.out.println(menu.getInvalidInput());
             answer = menu.readAnswer().toUpperCase();
@@ -112,8 +114,34 @@ public class Main {
                     exit = true;
                 }
 
+                if (action.equals(Menu.STRESS_SELECT)) {
+                    for (int i = 0; i < 16; i++) {
+                        String finalNickname = nickname;
+                        new Thread(() -> {
+                            for (int j = 0; j < 100000; j++) {
+                                try {
+                                    feedProvider.getRecentPosts(finalNickname);
+                                } catch (BackendException e) {
+                                    handleException(e);
+                                }
+                            }
+                        }).start();
+                     }
+                }
+
+                if (action.equals(Menu.STRESS_UPSERT)) {
+                    System.out.println(menu.getSpamStart());
+                    for (int i = 0; i < 1000; i++) {
+                        try {
+                            session.addPost(nickname, null);
+                        } catch (BackendException e) {
+                            handleException(e);
+                        }
+                    }
+                    System.out.println(menu.getSpamEnd());
+                }
+
                 if (action.equals(Menu.WRITE)) {
-                    //TODO: ograniczyć liczbę przyjmowanych znaków
                     String post = menu.processNewPost();
                     if (post != null) {
                         boolean created = false;
@@ -125,6 +153,8 @@ public class Main {
                         if (created) {
                             System.out.println(menu.getPostAdded());
                         }
+                    } else {
+                        System.out.println(menu.getEmptyPost());
                     }
                 }
 
@@ -195,7 +225,7 @@ public class Main {
                         boolean valid = false;
                         while (!valid) {
                             System.out.println(menu.getUserMenu(follow, unfollow));
-                            String userAction = menu.readAnswer();
+                            String userAction = menu.readAnswer().toUpperCase();
                             if (!(userAction.equals(Menu.FOLLOW) || userAction.equals(Menu.UNFOLLOW) || userAction.equals(Menu.EXIT))) {
                                 System.out.println(menu.getInvalidInput());
                             } else {
@@ -228,6 +258,8 @@ public class Main {
                             if (edited) {
                                 System.out.println(menu.getPostEdited());
                             }
+                        } else {
+                            System.out.println(menu.getEmptyPost());
                         }
                     } catch (Exception ex) {
                         handleException(ex);
@@ -244,10 +276,12 @@ public class Main {
     private static void handleException(Exception e) {
         if (e.getCause().getClass().equals(NoHostAvailableException.class)) {
             System.out.println(e.getMessage());
-            //TODO: jakiś delay
             System.exit(1);
         } else {
             System.out.println(e.getMessage());
+//            if (!e.getCause().getClass().equals(RequestTimeoutException.class)) {
+//                e.printStackTrace();
+//            }
         }
     }
 }

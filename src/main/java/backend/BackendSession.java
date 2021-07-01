@@ -2,15 +2,17 @@ package backend;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.exceptions.ReadTimeoutException;
 import com.datastax.driver.core.policies.DefaultRetryPolicy;
 import model.Post;
 import model.User;
-import org.apache.cassandra.exceptions.RequestTimeoutException;
+import org.apache.cassandra.exceptions.WriteTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.UUID;
 
 /*
  * For error handling done right see:
@@ -31,7 +33,7 @@ public class BackendSession {
 
     public BackendSession(String contactPoint, String keyspace) throws BackendException {
 
-        Cluster cluster = Cluster.builder().addContactPoint(contactPoint).withRetryPolicy(DefaultRetryPolicy.INSTANCE).build();
+        Cluster cluster = Cluster.builder().addContactPoint(contactPoint).build();
         try {
             session = cluster.connect(keyspace);
         } catch (NoHostAvailableException e) {
@@ -191,6 +193,9 @@ public class BackendSession {
 
     public void addPost(String nick, String content) throws BackendException {
         BoundStatement bs = new BoundStatement(ADD_POST);
+        if (content == null) {
+            content = UUID.randomUUID().toString();
+        }
         bs.bind(nick, new Date(System.currentTimeMillis()), content);
 
         executeStatement(bs, "Could not add post.");
@@ -213,14 +218,14 @@ public class BackendSession {
     }
 
     public void removeFollower(String nick, String followerToRemoveNick) throws BackendException {
-        BoundStatement bs = new BoundStatement(ADD_FOLLOWER);
+        BoundStatement bs = new BoundStatement(REMOVE_FOLLOWER);
         bs.bind(nick, followerToRemoveNick);
 
         executeStatement(bs, "Could not unfollow user.");
     }
 
     public void removeFollowing(String nick, String followedUserToRemoveNick) throws BackendException {
-        BoundStatement bs = new BoundStatement(ADD_FOLLOWING);
+        BoundStatement bs = new BoundStatement(REMOVE_FOLLOWING);
         bs.bind(nick, followedUserToRemoveNick);
 
         executeStatement(bs, "Could not unfollow user.");
@@ -257,7 +262,7 @@ public class BackendSession {
         } catch (NoHostAvailableException e) {
             failMessage += "database connection lost. Please try restarting the app.";
             throw new BackendException(failMessage, e);
-        } catch (RequestTimeoutException e) {
+        } catch (ReadTimeoutException | WriteTimeoutException e) {
             failMessage += "database operation timed out. Probably server is overcrowded. Please try again later.";
             throw new BackendException(failMessage, e);
         }

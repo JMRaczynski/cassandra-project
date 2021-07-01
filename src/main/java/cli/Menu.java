@@ -24,7 +24,9 @@ public class Menu {
     public static final String NO="N";
     public static final String FOLLOW="F";
     public static final String UNFOLLOW="U";
-    public static final String[] valid_actions = {S_FOLLOWERS, S_FOLLOWING, SEARCH, POSTS, WRITE, EDIT, EXIT};
+    public static final String STRESS_SELECT="SPAM";
+    public static final String STRESS_UPSERT="SPAM2";
+    public static final String[] valid_actions = {S_FOLLOWERS, S_FOLLOWING, SEARCH, POSTS, WRITE, EDIT, EXIT, STRESS_SELECT, STRESS_UPSERT};
 
 
     private static final String PROPERTIES_FILENAME = "interface.properties";
@@ -61,7 +63,14 @@ public class Menu {
 
     public String getPostsHeader() { return props.getProperty("posts_header") + ":"; }
 
-    public String getNoUserFound() { return props.getProperty("no_user_found") + ":"; }
+    public String getNoUserFound() { return props.getProperty("no_user_found"); }
+
+    public String getEmptyPost() { return props.getProperty("empty_post"); }
+
+    public String getSpamStart() { return props.getProperty("spam_start"); }
+
+    public String getSpamEnd() { return props.getProperty("spam_end"); }
+
 
     public String getSearchedName() {
         System.out.println(props.getProperty("search_for"));
@@ -134,7 +143,7 @@ public class Menu {
             System.out.println(props.getProperty("publish"));
             answer = readAnswer();
         }
-        if (answer.equals(YES)) {
+        if (answer.equals(YES) && !post.equals("")) {
             return post;
         } else {
             return null;
@@ -188,7 +197,7 @@ public class Menu {
             System.out.println(props.getProperty("save_changes"));
             answer = readAnswer();
         }
-        if (answer.equals(YES)) {
+        if (answer.equals(YES) && !edited.equals("")) {
             return edited;
         } else {
             return null;
